@@ -1,4 +1,0 @@
-./config.go
-./health.go
-./query.go
-./sqlguard.go
