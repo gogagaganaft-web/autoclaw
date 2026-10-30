@@ -1,0 +1,47 @@
+{
+  "name": "msi-vue",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:unit": "vitest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "core-js": "^3.50.0",
+    "dx-template-gallery-data": "file:./packages/dx-template-gallery-data",
+    "exceljs": "^3.10.0",
+    "file-saver-es": "^2.0.5",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.9",
+    "luxon": "^3.7.2",
+    "micromark": "^4.0.2",
+    "openai": "^6.49.0",
+    "vue": "^3.5.43",
+    "vue-router": "^4.6.4"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@typescript-eslint/eslint-plugin": "^8.67.0",
+    "@typescript-eslint/parser": "^8.67.0",
+    "@vitejs/plugin-vue": "^6.0.8",
+    "@vue/eslint-config-airbnb": "^7.0.1",
+    "@vue/eslint-config-typescript": "^12.0.0",
+    "@vue/test-utils": "^2.4.11",
+    "eslint": "^9.39.5",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-vue": "^9.33.0",
+    "eslint-plugin-vuejs-accessibility": "^2.6.0",
+    "rollup-plugin-polyfill-node": "^0.13.0",
+    "sass-embedded": "^1.102.0",
+    "typescript": "~5.6.3",
+    "vite": "^8.1.5",
+    "vitest": "^4.1.11",
+    "vue-eslint-parser": "^9.4.3",
+    "vue-tsc": "^2.2.12"
+  }
+}

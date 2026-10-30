@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/fv.png">
+    <title>Генератор Отчетов</title>
+    <!-- Лоадер на время загрузки CSS темы: скрывается inline-скриптом ниже
+         по onload нужной ссылки (или через 4 с — страховка). -->
+    <style>
+      html.theme-loading body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: 99998;
+        background: #fff;
+      }
+      html.theme-dark.theme-loading body::before {
+        background: #1d1d1d;
+      }
+      html.theme-loading body::after {
+        content: '';
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        z-index: 99999;
+        box-sizing: border-box;
+        width: 34px;
+        height: 34px;
+        margin: -17px 0 0 -17px;
+        border: 3px solid rgba(120, 120, 120, 0.3);
+        border-top-color: #5486ff;
+        border-radius: 50%;
+        animation: theme-spin 0.8s linear infinite;
+      }
+      @keyframes theme-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+    <link rel="stylesheet" type="text/css" href="/msi/s.light.css" id="msi-theme-light"/>
+    <link rel="stylesheet" type="text/css" href="/msi/s.dark.css" id="msi-theme-dark" disabled />
+    <script>
+      try {
+        document.documentElement.classList.add('theme-loading');
+
+        // Палитра (s/b/e/l/o) применяется до первой отрисовки — без вспышки.
+        // Каталог стилей берём из текущей ссылки: сборка добавляет base (/gr/…).
+        var palette = localStorage.getItem('app-palette');
+        if (['s', 'b', 'e', 'l', 'o'].indexOf(palette) === -1) palette = 's';
+        if (palette !== 's') {
+          var themeLight = document.getElementById('msi-theme-light');
+          var themeDark = document.getElementById('msi-theme-dark');
+          var cssDir = themeLight.href.slice(0, themeLight.href.lastIndexOf('/') + 1);
+          themeLight.href = cssDir + palette + '.light.css';
+          themeDark.href = cssDir + palette + '.dark.css';
+        }
+
+        var isDark = localStorage.getItem('app-theme') === 'dark';
+        if (isDark) {
+          // Класс нужен сразу — фон лоадера должен быть тёмным до загрузки CSS.
+          document.documentElement.classList.add('theme-dark');
+          document.getElementById('msi-theme-dark').disabled = false;
+        }
+
+        // Лоадер держим, пока не загрузилась НУЖНАЯ ссылке темы.
+        var activeLink = document.getElementById(isDark ? 'msi-theme-dark' : 'msi-theme-light');
+        var themeReady = function () {
+          document.documentElement.classList.remove('theme-loading');
+        };
+        if (activeLink.sheet) themeReady();
+        else activeLink.addEventListener('load', themeReady);
+        setTimeout(themeReady, 4000);
+      } catch (e) {}
+    </script>
+    <link rel="stylesheet" type="text/css" href="/msi/msi.css"/>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="js/cldr.min.js"></script>
+    <script src="js/event.min.js"></script>
+    <script src="js/supplemental.min.js"></script>
+    <script src="js/unresolved.min.js"></script>
+    <script src="js/globalize.min.js"></script>
+    <script src="js/message.min.js"></script>
+    <script src="js/number.min.js"></script>
+    <script src="js/currency.min.js"></script>
+    <script src="js/date.min.js"></script>
+    <script src="/msi/msi.js"></script>
+    <script src="js/msg.ru.js"></script>
+    <script src="js/new_ru.js"></script>
+    <script src="monaco/vs/loader.js"></script>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

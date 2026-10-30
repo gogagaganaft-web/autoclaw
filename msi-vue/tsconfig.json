@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolvePackageJsonExports": false,
+    "strict": true,
+    "jsx": "preserve",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "devextreme-vue": ["./src/msi-vue/index.js"],
+      "devextreme-vue/*": ["./src/msi-vue/*"],
+      "devextreme/*": ["./src/msi-vue/core/*"],
+      "devextreme-dist/*": ["./src/msi-vue/core/*"]
+    }
+  },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "src/**/*.vue"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
+}

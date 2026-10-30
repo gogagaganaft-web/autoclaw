@@ -1,3 +1,0 @@
-exports.VERTICAL_GROUP_ORIENTATION = exports.HORIZONTAL_GROUP_ORIENTATION = undefined;
-exports.VERTICAL_GROUP_ORIENTATION = "vertical";
-exports.HORIZONTAL_GROUP_ORIENTATION = "horizontal";

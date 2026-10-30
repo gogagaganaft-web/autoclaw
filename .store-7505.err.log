@@ -1,4 +1,0 @@
-2026/10/24 15:08:42 store: .env не найден, используем переменные окружения
-2026/10/24 15:08:42 MS SQL connected: 127.0.0.1:1433/report
-2026/10/24 15:08:42 storage backend: mssql
-2026/10/24 15:08:42 report store on :7505 (backend mssql)

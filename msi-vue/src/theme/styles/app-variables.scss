@@ -1,0 +1,65 @@
+// Design tokens of the application, derived from MSI widget variables (--dx-*).
+// Both MSI stylesheets (public/msi/msi.css — light and public/msi/orange.dark.css — dark)
+// declare the same :root variables, so every token below automatically follows
+// the MSI theme enabled in index.html.
+
+:root {
+  // Layout
+  --content-padding: 24px;
+  --page-padding: 32px;
+  --header-toolbar-vertical-padding: 10px;
+  --toolbar-margin-bottom: var(--content-padding);
+  --footer-height: 70px;
+  --footer-left-padding: calc((var(--side-panel-min-width) - var(--dx-font-size-icon)) / 2);
+  --calendar-width: 292px;
+  --change-password-popup-height: 190px;
+  --side-panel-min-width: 48px;
+
+  // Surfaces & colors
+  --base-bg: var(--dx-component-color-bg);
+  --base-bg-darken-5: color-mix(in srgb, var(--base-bg), #000 5%);
+  --base-bg-darken-4: color-mix(in srgb, var(--base-bg), #000 4%);
+  --typography-bg: var(--base-bg);
+  --background-color: var(--typography-bg);
+  --card-background: var(--base-bg);
+  --side-panel-background: var(--base-bg-darken-5);
+  --card-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.04);
+  --border-color: var(--dx-color-border);
+
+  // Accents & statuses
+  --accent-color: var(--dx-color-primary);
+  --success-color: var(--dx-color-success);
+  --info-color: var(--dx-color-primary);
+  --warning-color: var(--dx-color-warning);
+  --error-color: var(--dx-color-danger);
+  --dark-warning-color: color-mix(in srgb, var(--warning-color), #000 12%);
+  --icon-dark-warning-color: var(--dark-warning-color);
+  --tooltip-danger-button-color: color-mix(in srgb, var(--error-color), transparent 90%);
+  --tooltip-success-button-color: color-mix(in srgb, var(--success-color), transparent 90%);
+
+  // Text
+  --base-text-color: var(--dx-color-text);
+  --base-text-color-alpha: color-mix(in srgb, var(--base-text-color), transparent 30%);
+  --background-gray-color: color-mix(in srgb, var(--base-text-color), transparent 96%);
+  --texteditor-edit-color: var(--dx-texteditor-color-text);
+  --texteditor-label-color: var(--dx-texteditor-color-label);
+  --subtitle-text-color: var(--texteditor-label-color);
+
+  // Widget metrics mirrored from MSI defaults
+  --toolbar-height: var(--dx-toolbar-height);
+  --list-padding-left: var(--dx-list-item-padding-inline);
+  --list-padding-vertical: var(--dx-list-item-padding-block);
+  --popup-toolbar-item-spacing: var(--dx-popup-toolbar-item-padding-inline);
+  --drop-down-gnrc-button-height: var(--dx-component-height);
+  --theme-padding: var(--dx-button-padding-inline);
+  --button-height-theme-difference: calc((var(--theme-padding) - 10px) / 3);
+  --button-height: calc(26px + var(--button-height-theme-difference));
+  --scheduler-toolbar-height: calc(var(--button-height) + 2 * var(--theme-padding));
+}
+
+// theme-service toggles `theme-dark` / `theme-light` on <html>.
+html.theme-dark {
+  --card-shadow: 0 4px 20px 0 rgba(0, 0, 0, 0.4);
+  --base-bg-darken-5: color-mix(in srgb, var(--base-bg), #000 8%);
+  --base-bg-darken-4: color-mix(in srgb, var(--base-bg), #000 6%);
+}

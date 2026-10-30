@@ -1,1 +1,0 @@
-"SELECT DISTINCT \r\nuk.ROW_ID id,\r\nIIF(uk.[Тема]='',org.Название,CONCAT(org.Название,' [',uk.[Тема],']')) name\r\nFROM [stack].[УК Договоры] uk \r\nJOIN [stack].[Организации] org \r\nON org.ROW_ID=uk.[Организация-УКДоговор] \r\nWHERE uk.Папки=802 \r\nORDER BY 2"
