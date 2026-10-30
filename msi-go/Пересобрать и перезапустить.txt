@@ -1,0 +1,7 @@
+./deploy.sh
+Фронт (C:\xampp\htdocs\report → /var/www/html/report): скопировать папку, в браузере Ctrl+F5.
+Сервера (C:\PROJECT\GOREPORT\cmd|internal → /opt/goreport): скопировать исходники, затем ./deploy.sh — соберёт, включит и перезапустит службы (теперь уже корректно).
+
+
+chmod +x /opt/goreport/*.sh
+./deploy.sh

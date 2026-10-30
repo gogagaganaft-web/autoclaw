@@ -1,0 +1,933 @@
+package main
+
+import (
+	"context"
+	"database/sql"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"log"
+	"net/http"
+	"sort"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/gin-gonic/gin"
+	"goreport/internal/database"
+)
+
+func tableName(token string) string {
+	return "#gr_" + token
+}
+
+// StringList принимает JSON-значение как строку или массив строк.
+type StringList []string
+
+func (s *StringList) UnmarshalJSON(b []byte) error {
+	var arr []string
+	if err := json.Unmarshal(b, &arr); err == nil {
+		*s = arr
+		return nil
+	}
+	var str string
+	if err := json.Unmarshal(b, &str); err == nil {
+		*s = []string{str}
+		return nil
+	}
+	return errors.New("dbNames must be a string or an array of strings")
+}
+
+type InitRequest struct {
+	DBNames    StringList `json:"dbNames"`
+	SQL        string     `json:"sql"`
+	ReportName string     `json:"reportName"`
+}
+
+func reportInitHandler(c *gin.Context) {
+	var req InitRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if len(req.DBNames) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "dbNames is required"})
+		return
+	}
+	if strings.TrimSpace(req.SQL) == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "sql is required"})
+		return
+	}
+
+	token, err := generateToken()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	ctx := c.Request.Context()
+	sess := &Session{
+		Token:      token,
+		DBs:        req.DBNames,
+		ByDB:       make(map[string]*DBSession, len(req.DBNames)),
+		CreatedAt:  time.Now(),
+		LastAccess: time.Now(),
+	}
+
+	type dbResult struct {
+		dbName string
+		err    string
+	}
+	results := make(chan dbResult, len(req.DBNames))
+
+	for _, dbName := range req.DBNames {
+		go func(dbName string) {
+			r := dbResult{dbName: dbName}
+			defer func() { results <- r }()
+
+			held, err := database.OpenHeldConn(ctx, dbName)
+			if err != nil {
+				r.err = "connect: " + err.Error()
+				return
+			}
+			keep := false
+			defer func() {
+				if !keep {
+					held.Close()
+				}
+			}()
+
+			const setup = "SET LANGUAGE Russian; SET DATEFORMAT ymd; SET NOCOUNT ON; "
+			tr, err := transformFinalSelect(req.SQL, tableName(token), req.ReportName, database.GetDBDisplayName(dbName))
+			if err != nil {
+				r.err = err.Error()
+				return
+			}
+
+			var count int64
+			var cols []string
+			if tr.Exec != nil {
+				if strings.TrimSpace(tr.Batch) != "" {
+					if _, err := held.Conn.ExecContext(ctx, setup+tr.Batch); err != nil {
+						r.err = "exec: " + err.Error()
+						return
+					}
+				}
+				cols, count, err = execToTempTable(ctx, held.Conn, tr.Exec.Stmt, tableName(token), req.ReportName, database.GetDBDisplayName(dbName))
+				if err != nil {
+					r.err = err.Error()
+					return
+				}
+			} else {
+				if _, err := held.Conn.ExecContext(ctx, setup+tr.Batch); err != nil {
+					r.err = "exec: " + err.Error()
+					return
+				}
+				if err := held.Conn.QueryRowContext(ctx, "SELECT COUNT(*) FROM "+tableName(token)).Scan(&count); err != nil {
+					r.err = "count: " + err.Error()
+					return
+				}
+				cols, err = tableColumns(ctx, held.Conn, tableName(token))
+				if err != nil {
+					r.err = "columns: " + err.Error()
+					return
+				}
+			}
+
+			sessionsMu.Lock()
+			sess.ByDB[dbName] = &DBSession{Held: held, Count: count, Cols: cols}
+			sessionsMu.Unlock()
+			keep = true
+		}(dbName)
+	}
+
+	var errs []string
+	for range req.DBNames {
+		r := <-results
+		if r.err != "" {
+			errs = append(errs, r.dbName+": "+r.err)
+		}
+	}
+	if len(errs) > 0 {
+		go closeSession(sess)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": strings.Join(errs, "\n")})
+		return
+	}
+
+	var totalRows int64
+	for _, dbSess := range sess.ByDB {
+		totalRows += dbSess.Count
+	}
+
+	sessionsMu.Lock()
+	sess.Columns = sess.ByDB[req.DBNames[0]].Cols
+	sess.TotalRows = totalRows
+	sessions[token] = sess
+	sessionsMu.Unlock()
+
+	log.Printf("Report init: token=%s, DBs=%d, columns=%d, totalRows=%d",
+		token[:8]+"...", len(req.DBNames), len(sess.Columns), totalRows)
+
+	c.JSON(http.StatusOK, gin.H{
+		"token":     token,
+		"columns":   sess.Columns,
+		"totalRows": totalRows,
+	})
+}
+
+func tableColumns(ctx context.Context, conn *sql.Conn, table string) ([]string, error) {
+	rows, err := conn.QueryContext(ctx, "SELECT TOP 0 * FROM "+table)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	return rows.Columns()
+}
+
+// ---------- pivot ----------
+
+type PivotField struct {
+	DataField    string      `json:"dataField"`
+	Area         string      `json:"area"`
+	SummaryType  string      `json:"summaryType"`
+	FilterValues interface{} `json:"filterValues"`
+}
+
+type PivotRequest struct {
+	Token  string       `json:"token"`
+	Fields []PivotField `json:"fields"`
+}
+
+type aggSpec struct {
+	field  string
+	kind   string
+	colPos int
+	cntPos int
+}
+
+func buildPivotSQL(table string, fields []PivotField) (string, []aggSpec, []PivotField, []PivotField, error) {
+	var rowFields, colFields, dataFields []PivotField
+	var wheres []string
+	for _, f := range fields {
+		switch f.Area {
+		case "row":
+			rowFields = append(rowFields, f)
+		case "column":
+			colFields = append(colFields, f)
+		case "data":
+			dataFields = append(dataFields, f)
+		case "filter":
+			cond, err := filterClause(f)
+			if err != nil {
+				return "", nil, nil, nil, err
+			}
+			if cond != "" {
+				wheres = append(wheres, cond)
+			}
+		}
+	}
+	if len(dataFields) == 0 {
+		return "", nil, nil, nil, errors.New("pivot: нет полей area=data")
+	}
+
+	var sel []string
+	for _, f := range rowFields {
+		sel = append(sel, "["+f.DataField+"]")
+	}
+	for _, f := range colFields {
+		sel = append(sel, "["+f.DataField+"]")
+	}
+	var aggs []aggSpec
+	for _, f := range dataFields {
+		kind := strings.ToLower(f.SummaryType)
+		if kind == "" {
+			kind = "sum"
+		}
+		spec := aggSpec{field: f.DataField, kind: kind, colPos: len(sel), cntPos: -1}
+		switch kind {
+		case "count":
+			sel = append(sel, "COUNT(*) AS ["+f.DataField+"]")
+		case "sum", "min", "max":
+			sel = append(sel, strings.ToUpper(kind)+"(["+f.DataField+"]) AS ["+f.DataField+"]")
+		case "avg":
+			sel = append(sel, "SUM(["+f.DataField+"]) AS ["+f.DataField+"]")
+			spec.cntPos = len(sel)
+			sel = append(sel, "COUNT(*) AS [__cnt_"+f.DataField+"]")
+		default:
+			return "", nil, nil, nil, fmt.Errorf("pivot: unsupported summaryType %q", f.SummaryType)
+		}
+		aggs = append(aggs, spec)
+	}
+
+	query := "SELECT " + strings.Join(sel, ", ") + " FROM " + table
+	if len(wheres) > 0 {
+		query += " WHERE " + strings.Join(wheres, " AND ")
+	}
+	if len(rowFields)+len(colFields) > 0 {
+		var group []string
+		for _, f := range rowFields {
+			group = append(group, "["+f.DataField+"]")
+		}
+		for _, f := range colFields {
+			group = append(group, "["+f.DataField+"]")
+		}
+		query += " GROUP BY " + strings.Join(group, ", ")
+	}
+	return query, aggs, rowFields, colFields, nil
+}
+
+func filterClause(f PivotField) (string, error) {
+	if f.FilterValues == nil {
+		return "", nil
+	}
+	vals, ok := f.FilterValues.([]interface{})
+	if !ok || len(vals) == 0 {
+		return "", nil
+	}
+	var parts []string
+	for _, v := range vals {
+		switch t := v.(type) {
+		case string:
+			parts = append(parts, "'"+strings.ReplaceAll(t, "'", "''")+"'")
+		case float64:
+			parts = append(parts, strconv.FormatFloat(t, 'f', -1, 64))
+		case nil:
+			parts = append(parts, "NULL")
+		default:
+			parts = append(parts, fmt.Sprintf("%v", v))
+		}
+	}
+	return "[" + f.DataField + "] IN (" + strings.Join(parts, ", ") + ")", nil
+}
+
+func fmtVal(v interface{}) string {
+	switch t := v.(type) {
+	case nil:
+		return "NULL"
+	case float64:
+		return strconv.FormatFloat(t, 'f', -1, 64)
+	case int64:
+		return strconv.FormatInt(t, 10)
+	case bool:
+		return strconv.FormatBool(t)
+	case time.Time:
+		return t.Format("2006-01-02 15:04:05")
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
+
+func asFloat(v interface{}) (float64, bool) {
+	switch t := v.(type) {
+	case nil:
+		return 0, false
+	case int64:
+		return float64(t), true
+	case float64:
+		return t, true
+	case string:
+		f, err := strconv.ParseFloat(strings.TrimSpace(t), 64)
+		return f, err == nil
+	default:
+		return 0, false
+	}
+}
+
+type cellAgg struct {
+	rowVals []interface{}
+	colVals []interface{}
+	sums    map[string]float64
+	cnts    map[string]float64
+	mins    map[string]float64
+	maxs    map[string]float64
+}
+
+func reportPivotHandler(c *gin.Context) {
+	var req PivotRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	sess, ok := getSession(req.Token)
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Session not found or expired"})
+		return
+	}
+	if len(req.Fields) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "fields is required"})
+		return
+	}
+
+	query, aggs, rowFields, colFields, err := buildPivotSQL(tableName(req.Token), req.Fields)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx := c.Request.Context()
+	type cubeResult struct {
+		dbName string
+		cells  map[string]*cellAgg
+		err    string
+	}
+	results := make(chan cubeResult, len(sess.ByDB))
+
+	for dbName, dbSess := range sess.ByDB {
+		go func(dbName string, dbSess *DBSession) {
+			r := cubeResult{dbName: dbName, cells: make(map[string]*cellAgg)}
+			defer func() { results <- r }()
+
+			rows, err := dbSess.Held.Conn.QueryContext(ctx, query)
+			if err != nil {
+				r.err = err.Error()
+				return
+			}
+			defer rows.Close()
+
+			colNames := make([]string, len(rowFields)+len(colFields)+len(aggs))
+			for i := range colNames {
+				colNames[i] = fmt.Sprintf("c%d", i)
+			}
+			vals, err := database.ScanAllRows(rows, colNames)
+			if err != nil {
+				r.err = err.Error()
+				return
+			}
+
+			for _, row := range vals {
+				rowKey := ""
+				rowVals := make([]interface{}, len(rowFields))
+				for i := range rowFields {
+					v := row[i]
+					rowVals[i] = v
+					rowKey += fmtVal(v) + "\x00"
+				}
+				colKey := ""
+				colVals := make([]interface{}, len(colFields))
+				for i := range colFields {
+					v := row[len(rowFields)+i]
+					colVals[i] = v
+					colKey += fmtVal(v) + "\x00"
+				}
+				key := rowKey + "|" + colKey
+				ca, ok := r.cells[key]
+				if !ok {
+					ca = &cellAgg{
+						rowVals: rowVals,
+						colVals: colVals,
+						sums:    make(map[string]float64),
+						cnts:    make(map[string]float64),
+						mins:    make(map[string]float64),
+						maxs:    make(map[string]float64),
+					}
+					r.cells[key] = ca
+				}
+				for _, ag := range aggs {
+					raw, has := asFloat(row[ag.colPos])
+					if !has {
+						continue
+					}
+					switch ag.kind {
+					case "count":
+						ca.sums[ag.field] += raw
+					case "sum":
+						ca.sums[ag.field] += raw
+					case "avg":
+						ca.sums[ag.field] += raw
+						if cnt, ok := asFloat(row[ag.cntPos]); ok {
+							ca.cnts[ag.field] += cnt
+						}
+					case "min":
+						if _, seen := ca.mins[ag.field]; !seen || raw < ca.mins[ag.field] {
+							ca.mins[ag.field] = raw
+						}
+					case "max":
+						if _, seen := ca.maxs[ag.field]; !seen || raw > ca.maxs[ag.field] {
+							ca.maxs[ag.field] = raw
+						}
+					}
+				}
+			}
+		}(dbName, dbSess)
+	}
+
+	var errs []string
+	var cubes []cubeResult
+	for range sess.ByDB {
+		r := <-results
+		if r.err != "" {
+			errs = append(errs, r.dbName+": "+r.err)
+		} else {
+			cubes = append(cubes, r)
+		}
+	}
+	if len(errs) > 0 {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": strings.Join(errs, "\n")})
+		return
+	}
+
+	merged := map[string]*cellAgg{}
+	for _, cube := range cubes {
+		for key, ca := range cube.cells {
+			existing, ok := merged[key]
+			if !ok {
+				merged[key] = ca
+				continue
+			}
+			for f, v := range ca.sums {
+				existing.sums[f] += v
+			}
+			for f, v := range ca.cnts {
+				existing.cnts[f] += v
+			}
+			for f, v := range ca.mins {
+				if m, seen := existing.mins[f]; !seen || v < m {
+					existing.mins[f] = v
+				}
+			}
+			for f, v := range ca.maxs {
+				if m, seen := existing.maxs[f]; !seen || v > m {
+					existing.maxs[f] = v
+				}
+			}
+		}
+	}
+
+	keys := make([]string, 0, len(merged))
+	for k := range merged {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	out := make([]map[string]interface{}, 0, len(keys))
+	for _, k := range keys {
+		ca := merged[k]
+		obj := make(map[string]interface{}, len(rowFields)+len(colFields)+len(aggs))
+		for i, f := range rowFields {
+			obj[f.DataField] = ca.rowVals[i]
+		}
+		for i, f := range colFields {
+			obj[f.DataField] = ca.colVals[i]
+		}
+		for _, ag := range aggs {
+			switch ag.kind {
+			case "avg":
+				if ca.cnts[ag.field] > 0 {
+					obj[ag.field] = ca.sums[ag.field] / ca.cnts[ag.field]
+				} else {
+					obj[ag.field] = nil
+				}
+			case "min":
+				obj[ag.field] = ca.mins[ag.field]
+			case "max":
+				obj[ag.field] = ca.maxs[ag.field]
+			default:
+				obj[ag.field] = ca.sums[ag.field]
+			}
+		}
+		out = append(out, obj)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"rows":       out,
+		"totalCells": len(out),
+	})
+}
+
+// ---------- page (общая выборка) ----------
+
+type PageRequest struct {
+	Token    string `json:"token"`
+	Page     int    `json:"page"`
+	PageSize int    `json:"pageSize"`
+}
+
+func reportPageHandler(c *gin.Context) {
+	var req PageRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	sess, ok := getSession(req.Token)
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Session not found or expired"})
+		return
+	}
+
+	page := req.Page
+	if page < 1 {
+		page = 1
+	}
+	pageSize := req.PageSize
+	if pageSize < 1 {
+		pageSize = 100
+	} else if pageSize > 100000 {
+		pageSize = 100000
+	}
+
+	offset := int64(page-1) * int64(pageSize)
+	rows, total, err := fetchPage(c.Request.Context(), sess, "", offset, int64(pageSize))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	totalPages := int64(0)
+	if pageSize > 0 {
+		totalPages = (total + int64(pageSize) - 1) / int64(pageSize)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"rows":       rows,
+		"totalRows":  total,
+		"page":       page,
+		"pageSize":   pageSize,
+		"totalPages": totalPages,
+	})
+}
+
+// fetchPage достаёт строки из temp-таблиц всех БД в порядке sess.DBs,
+// обходя их по сегментам (OFFSET/FETCH на каждой БД). Data остаётся в SQL.
+func fetchPage(ctx context.Context, sess *Session, where string, offset, limit int64) ([][]interface{}, int64, error) {
+	table := tableName(sess.Token)
+	countQuery := "SELECT COUNT(*) FROM " + table
+	if where != "" {
+		countQuery += " WHERE " + where
+	}
+
+	type countResult struct {
+		dbName string
+		count  int64
+		err    error
+	}
+	counts := make(chan countResult, len(sess.ByDB))
+	for dbName, dbSess := range sess.ByDB {
+		go func(dbName string, dbSess *DBSession) {
+			r := countResult{dbName: dbName}
+			defer func() { counts <- r }()
+			if err := dbSess.Held.Conn.QueryRowContext(ctx, countQuery).Scan(&r.count); err != nil {
+				r.err = err
+			}
+		}(dbName, dbSess)
+	}
+
+	perDB := make(map[string]int64, len(sess.ByDB))
+	var total int64
+	for range sess.ByDB {
+		r := <-counts
+		if r.err != nil {
+			return nil, 0, fmt.Errorf("%s: %v", r.dbName, r.err)
+		}
+		perDB[r.dbName] = r.count
+		total += r.count
+	}
+
+	var segments []struct {
+		dbName string
+		start  int64
+		length int64
+	}
+	consumed := int64(0)
+	remaining := limit
+	for _, dbName := range sess.DBs {
+		cnt := perDB[dbName]
+		if offset >= consumed+cnt {
+			consumed += cnt
+			continue
+		}
+		segStart := offset - consumed
+		if segStart < 0 {
+			segStart = 0
+		}
+		length := cnt - segStart
+		if length > remaining {
+			length = remaining
+		}
+		if length > 0 {
+			segments = append(segments, struct {
+				dbName string
+				start  int64
+				length int64
+			}{dbName, segStart, length})
+		}
+		remaining -= length
+		consumed += cnt
+		if remaining == 0 {
+			break
+		}
+	}
+
+	type fetchResult struct {
+		dbName string
+		rows   [][]interface{}
+		err    error
+	}
+	fetches := make(chan fetchResult, len(segments))
+	for _, seg := range segments {
+		dbSess := sess.ByDB[seg.dbName]
+		seg := seg
+		go func() {
+			r := fetchResult{dbName: seg.dbName}
+			defer func() { fetches <- r }()
+			query := fmt.Sprintf(
+				"SELECT * FROM %s%s ORDER BY (SELECT NULL) OFFSET %d ROWS FETCH NEXT %d ROWS ONLY",
+				table, map[bool]string{true: " WHERE " + where, false: ""}[where != ""], seg.start, seg.length)
+			rows, err := dbSess.Held.Conn.QueryContext(ctx, query)
+			if err != nil {
+				r.err = err
+				return
+			}
+			defer rows.Close()
+			vals, err := database.ScanAllRows(rows, sess.Columns)
+			if err != nil {
+				r.err = err
+				return
+			}
+			r.rows = vals
+		}()
+	}
+
+	var out [][]interface{}
+	for i := 0; i < len(segments); i++ {
+		fr := <-fetches
+		if fr.err != nil {
+			return nil, 0, fmt.Errorf("%s: %v", fr.dbName, fr.err)
+		}
+		out = append(out, fr.rows...)
+	}
+	return out, total, nil
+}
+
+// ---------- drilldown ----------
+
+type DrillRequest struct {
+	Token     string                 `json:"token"`
+	RowValues map[string]interface{} `json:"rowValues"`
+	ColValues map[string]interface{} `json:"colValues"`
+	Page      int                    `json:"page"`
+	PageSize  int                    `json:"pageSize"`
+}
+
+func drilldownWhere(rowValues, colValues map[string]interface{}) (string, error) {
+	var clauses []string
+	vals := make(map[string]interface{})
+	for k, v := range rowValues {
+		vals[k] = v
+	}
+	for k, v := range colValues {
+		vals[k] = v
+	}
+	for field, v := range vals {
+		if vs, ok := v.([]interface{}); ok {
+			var parts []string
+			for _, x := range vs {
+				switch t := x.(type) {
+				case string:
+					parts = append(parts, "'"+strings.ReplaceAll(t, "'", "''")+"'")
+				case float64:
+					parts = append(parts, strconv.FormatFloat(t, 'f', -1, 64))
+				case nil:
+					parts = append(parts, "NULL")
+				default:
+					parts = append(parts, fmt.Sprintf("%v", x))
+				}
+			}
+			if len(parts) == 0 {
+				return "", errors.New("drilldown: empty filter values for " + field)
+			}
+			clauses = append(clauses, "["+field+"] IN ("+strings.Join(parts, ", ")+")")
+			continue
+		}
+		switch t := v.(type) {
+		case string:
+			clauses = append(clauses, "["+field+"] = '"+strings.ReplaceAll(t, "'", "''")+"'")
+		case float64:
+			clauses = append(clauses, "["+field+"] = "+strconv.FormatFloat(t, 'f', -1, 64))
+		case nil:
+			clauses = append(clauses, "["+field+"] IS NULL")
+		default:
+			clauses = append(clauses, "["+field+"] = "+fmt.Sprintf("%v", v))
+		}
+	}
+	return strings.Join(clauses, " AND "), nil
+}
+
+func reportDrilldownHandler(c *gin.Context) {
+	var req DrillRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	sess, ok := getSession(req.Token)
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Session not found or expired"})
+		return
+	}
+	if len(req.RowValues)+len(req.ColValues) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "rowValues/colValues required"})
+		return
+	}
+	where, err := drilldownWhere(req.RowValues, req.ColValues)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	page := req.Page
+	if page < 1 {
+		page = 1
+	}
+	pageSize := req.PageSize
+	if pageSize < 1 {
+		pageSize = 100
+	} else if pageSize > 100000 {
+		pageSize = 100000
+	}
+
+	ctx := c.Request.Context()
+
+	offset := int64(page-1) * int64(pageSize)
+	rows, total, err := fetchPage(ctx, sess, where, offset, int64(pageSize))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	totalPages := int64(0)
+	if pageSize > 0 {
+		totalPages = (total + int64(pageSize) - 1) / int64(pageSize)
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"rows":       rows,
+		"totalRows":  total,
+		"page":       page,
+		"pageSize":   pageSize,
+		"totalPages": totalPages,
+	})
+}
+
+// ---------- distinct ----------
+
+type DistinctRequest struct {
+	Token     string `json:"token"`
+	FieldName string `json:"fieldName"`
+}
+
+func reportDistinctHandler(c *gin.Context) {
+	var req DistinctRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	sess, ok := getSession(req.Token)
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Session not found or expired"})
+		return
+	}
+	if req.FieldName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "fieldName is required"})
+		return
+	}
+	colIdx := -1
+	for i, col := range sess.Columns {
+		if col == req.FieldName {
+			colIdx = i
+			break
+		}
+	}
+	if colIdx < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Column %s not found", req.FieldName)})
+		return
+	}
+
+	ctx := c.Request.Context()
+	table := tableName(req.Token)
+
+	type dResult struct {
+		dbName string
+		vals   []interface{}
+		err    string
+	}
+	results := make(chan dResult, len(sess.ByDB))
+	for dbName, dbSess := range sess.ByDB {
+		go func(dbName string, dbSess *DBSession) {
+			r := dResult{dbName: dbName}
+			defer func() { results <- r }()
+			query := "SELECT DISTINCT [" + req.FieldName + "] FROM " + table + " WHERE [" + req.FieldName + "] IS NOT NULL"
+			rows, err := dbSess.Held.Conn.QueryContext(ctx, query)
+			if err != nil {
+				r.err = err.Error()
+				return
+			}
+			defer rows.Close()
+			vals, err := database.ScanAllRows(rows, []string{req.FieldName})
+			if err != nil {
+				r.err = err.Error()
+				return
+			}
+			for _, row := range vals {
+				r.vals = append(r.vals, row[0])
+			}
+		}(dbName, dbSess)
+	}
+
+	unique := map[string]interface{}{}
+	var errs []string
+	for range sess.ByDB {
+		r := <-results
+		if r.err != "" {
+			errs = append(errs, r.dbName+": "+r.err)
+			continue
+		}
+		for _, v := range r.vals {
+			unique[fmtVal(v)] = v
+		}
+	}
+	if len(errs) > 0 {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": strings.Join(errs, "\n")})
+		return
+	}
+
+	keys := make([]string, 0, len(unique))
+	for k := range unique {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+	values := make([]interface{}, 0, len(keys))
+	for _, k := range keys {
+		values = append(values, unique[k])
+	}
+
+	c.JSON(http.StatusOK, gin.H{"values": values})
+}
+
+// ---------- close / health ----------
+
+type CloseRequest struct {
+	Token string `json:"token"`
+}
+
+func reportCloseHandler(c *gin.Context) {
+	var req CloseRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	sessionsMu.Lock()
+	sess, ok := sessions[req.Token]
+	if ok {
+		delete(sessions, req.Token)
+	}
+	sessionsMu.Unlock()
+
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Session not found or expired"})
+		return
+	}
+
+	go closeSession(sess)
+	log.Printf("Session %s closed, temp tables dropped", req.Token[:8]+"...")
+	c.JSON(http.StatusOK, gin.H{"message": "closed"})
+}

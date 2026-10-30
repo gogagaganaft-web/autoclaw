@@ -1,0 +1,17 @@
+[Unit]
+Description=GOREPORT Store (port 7505)
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/goreport
+ExecStart=/opt/goreport/server-7505
+Restart=always
+RestartSec=5
+User=www-data
+EnvironmentFile=/opt/goreport/.env
+StandardOutput=append:/opt/goreport/server-7505.log
+StandardError=append:/opt/goreport/server-7505.log
+
+[Install]
+WantedBy=multi-user.target
