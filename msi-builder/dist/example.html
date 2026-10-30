@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>MSI Library — пример подключения</title>
+  <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/23.1.5/css/dx.common.css">
+  <link rel="stylesheet" href="https://cdn3.devexpress.com/jslib/23.1.5/css/dx.light.css">
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <!-- Рядом лежит собранный бандл msi.js -->
+  <script src="./msi.js"></script>
+</head>
+<body>
+  <h1>Пример MSI Library</h1>
+  <div id="grid"></div>
+  <script>
+    console.log('MSI loaded:', typeof MSI);
+    console.log('ui namespace:', typeof MSI.ui);
+    console.log('dxDataGrid:', typeof MSI.ui.dxDataGrid);
+
+    $(function () {
+      // Виджеты  — это классы: создаются через `new`
+      // (первый аргумент — элемент, jQuery-объект или селектор).
+      new MSI.ui.dxDataGrid($('#grid'), {
+        dataSource: [
+          { id: 1, name: 'Иван', age: 30 },
+          { id: 2, name: 'Мария', age: 25 },
+          { id: 3, name: 'Пётр', age: 40 },
+        ],
+        columns: ['id', 'name', 'age'],
+        showBorders: true,
+      });
+
+      // Альтернатива через jQuery-плагин (если jQuery-интеграция активна):
+      // $('#grid').dxDataGrid({ dataSource: [ ... ], columns: [ ... ] });
+    });
+  </script>
+</body>
+</html>

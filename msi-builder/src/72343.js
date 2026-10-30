@@ -1,0 +1,14 @@
+require("./86635.js");
+MSI.data.ODataStore = require("./341.js");
+MSI.data.ODataContext = require("./47256.js");
+MSI.data.utils = MSI.data.utils || {};
+MSI.data.utils.odata = {};
+MSI.data.utils.odata.keyConverters = require("./77869.js").keyConverters;
+MSI.data.EdmLiteral = require("./77869.js").EdmLiteral;
+var i = require("./77869.js");
+MSI.data.utils.odata.serializePropName = i.serializePropName;
+MSI.data.utils.odata.serializeValue = i.serializeValue;
+MSI.data.utils.odata.serializeKey = i.serializeKey;
+MSI.data.utils.odata.sendRequest = i.sendRequest;
+MSI.data.queryAdapters = MSI.data.queryAdapters || {};
+MSI.data.queryAdapters.odata = require("./54263.js").odata;

@@ -1,0 +1,27 @@
+.fon {  position: fixed;  top: 15px;  left: 0;  right: 0;  bottom: 0;  z-index: -10000;} .fon::before {  content: "";  position: absolute;  top: 0;  left: 0;  right: 0;  bottom: 0;  opacity: 0.5;  background-attachment: fixed;  background-size: cover;  background-image: url(/mes/css/bg.jpg);  -webkit-filter: grayscale(100%);  filter: grayscale(100%); }
+
+/*
+.fon {top: 78px;left:0;right:0;bottom:0;opacity: 0.5;background-attachment: fixed;background-size: cover;background-image: url(/mes/css/bg.jpg);-webkit-filter: grayscale(100%);filter:grayscale(100%);position:fixed;z-index:-10000;}
+
+
+.currency {
+    text-align: center;
+}
+
+.options {
+    padding: 20px;
+    margin-top: 20px;
+    background-color: rgba(191, 191, 191, 0.15);
+  }
+ 
+  .caption {
+    font-size: 18px;
+    font-weight: 500;
+  }
+  
+  .option {
+    width: 24%;
+    display: inline-block;
+    margin-top: 10px;
+  }
+*/

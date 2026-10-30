@@ -1,0 +1,5 @@
+<IfModule mod_headers.c>
+<FilesMatch "app_dev\.js$|app_prod\.js$|env\.js$">
+    Header set Cache-Control "no-cache, must-revalidate"
+</FilesMatch>
+</IfModule>

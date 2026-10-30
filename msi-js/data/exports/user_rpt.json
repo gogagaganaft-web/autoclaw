@@ -1,0 +1,989 @@
+[
+  {
+    "id": 2015,
+    "parent": 3000,
+    "text": "653 Журнал договоров",
+    "icon": "chart",
+    "description": "",
+    "filters": {
+      "БД_ЮЛ": []
+    },
+    "processing": "client",
+    "views": [
+      "grid"
+    ],
+    "fields": {
+      "grid": [
+        {
+          "dataField": "Отчет",
+          "caption": "Отчет",
+          "name": "Отчет"
+        },
+        {
+          "dataField": "Филиал",
+          "caption": "Филиал",
+          "name": "Филиал"
+        },
+        {
+          "dataField": "номер",
+          "caption": "номер",
+          "formatType": "fixedPoint",
+          "formatPrecision": 0,
+          "name": "номер"
+        },
+        {
+          "dataField": "отделение",
+          "caption": "отделение",
+          "name": "отделение"
+        },
+        {
+          "dataField": "участок",
+          "caption": "участок",
+          "name": "участок"
+        },
+        {
+          "dataField": "бюджет",
+          "caption": "бюджет",
+          "name": "бюджет"
+        },
+        {
+          "dataField": "тип",
+          "caption": "тип",
+          "name": "тип"
+        },
+        {
+          "dataField": "КатегорияНазвание",
+          "caption": "КатегорияНазвание",
+          "name": "КатегорияНазвание"
+        },
+        {
+          "dataField": "ОтрасльНазвание",
+          "caption": "ОтрасльНазвание",
+          "name": "ОтрасльНазвание"
+        },
+        {
+          "dataField": "ПП_428",
+          "caption": "ПП_428",
+          "name": "ПП_428"
+        },
+        {
+          "dataField": "дата_подписания",
+          "caption": "дата_подписания",
+          "name": "дата_подписания"
+        },
+        {
+          "dataField": "дата_расторжения",
+          "caption": "дата_расторжения",
+          "name": "дата_расторжения"
+        },
+        {
+          "dataField": "Плательщик_наименование",
+          "caption": "Плательщик_наименование",
+          "name": "Плательщик_наименование"
+        },
+        {
+          "dataField": "Плательщик_название",
+          "caption": "Плательщик_название",
+          "name": "Плательщик_название"
+        },
+        {
+          "dataField": "Плательщик_юрадрес",
+          "caption": "Плательщик_юрадрес",
+          "name": "Плательщик_юрадрес"
+        },
+        {
+          "dataField": "Плательщик_фактадрес",
+          "caption": "Плательщик_фактадрес",
+          "name": "Плательщик_фактадрес"
+        },
+        {
+          "dataField": "ИНН",
+          "caption": "ИНН",
+          "name": "ИНН"
+        },
+        {
+          "dataField": "КПП",
+          "caption": "КПП",
+          "name": "КПП"
+        },
+        {
+          "dataField": "ОГРН",
+          "caption": "ОГРН",
+          "name": "ОГРН"
+        },
+        {
+          "dataField": "email",
+          "caption": "email",
+          "name": "email"
+        },
+        {
+          "dataField": "Плательщик_ФИОрук",
+          "caption": "Плательщик_ФИОрук",
+          "name": "Плательщик_ФИОрук"
+        },
+        {
+          "dataField": "Плательщик_телрук",
+          "caption": "Плательщик_телрук",
+          "name": "Плательщик_телрук"
+        },
+        {
+          "dataField": "Грузополучатель_наименование",
+          "caption": "Грузополучатель_наименование",
+          "name": "Грузополучатель_наименование"
+        },
+        {
+          "dataField": "Грузополучатель_название",
+          "caption": "Грузополучатель_название",
+          "name": "Грузополучатель_название"
+        },
+        {
+          "dataField": "Грузополучатель_юрадрес",
+          "caption": "Грузополучатель_юрадрес",
+          "name": "Грузополучатель_юрадрес"
+        },
+        {
+          "dataField": "Грузополучатель_фактадрес",
+          "caption": "Грузополучатель_фактадрес",
+          "name": "Грузополучатель_фактадрес"
+        },
+        {
+          "dataField": "Грузополучатель_ФИОрук",
+          "caption": "Грузополучатель_ФИОрук",
+          "name": "Грузополучатель_ФИОрук"
+        },
+        {
+          "dataField": "Грузополучатель_телрук",
+          "caption": "Грузополучатель_телрук",
+          "name": "Грузополучатель_телрук"
+        },
+        {
+          "dataField": "Заказчик_наименование",
+          "caption": "Заказчик_наименование",
+          "name": "Заказчик_наименование"
+        },
+        {
+          "dataField": "Заказчик_название",
+          "caption": "Заказчик_название",
+          "name": "Заказчик_название"
+        },
+        {
+          "dataField": "Заказчик_юрадрес",
+          "caption": "Заказчик_юрадрес",
+          "name": "Заказчик_юрадрес"
+        },
+        {
+          "dataField": "Заказчик_фактадрес",
+          "caption": "Заказчик_фактадрес",
+          "name": "Заказчик_фактадрес"
+        },
+        {
+          "dataField": "Заказчик_ФИОрук",
+          "caption": "Заказчик_ФИОрук",
+          "name": "Заказчик_ФИОрук"
+        },
+        {
+          "dataField": "Заказчик_телрук",
+          "caption": "Заказчик_телрук",
+          "name": "Заказчик_телрук"
+        },
+        {
+          "dataField": "адрес_доставки",
+          "caption": "адрес_доставки",
+          "name": "адрес_доставки"
+        },
+        {
+          "dataField": "договорник",
+          "caption": "договорник",
+          "name": "договорник"
+        },
+        {
+          "dataField": "расчетчик",
+          "caption": "расчетчик",
+          "name": "расчетчик"
+        },
+        {
+          "dataField": "претензионист",
+          "caption": "претензионист",
+          "name": "претензионист"
+        }
+      ],
+      "pivot": [
+        {
+          "dataField": "Отчет",
+          "caption": "Отчет"
+        },
+        {
+          "dataField": "Филиал",
+          "caption": "Филиал"
+        },
+        {
+          "dataField": "номер",
+          "caption": "номер",
+          "format.type": "fixedPoint",
+          "format.precision": 0
+        },
+        {
+          "dataField": "отделение",
+          "caption": "отделение"
+        },
+        {
+          "dataField": "участок",
+          "caption": "участок"
+        },
+        {
+          "dataField": "бюджет",
+          "caption": "бюджет"
+        },
+        {
+          "dataField": "тип",
+          "caption": "тип"
+        },
+        {
+          "dataField": "КатегорияНазвание",
+          "caption": "КатегорияНазвание"
+        },
+        {
+          "dataField": "ОтрасльНазвание",
+          "caption": "ОтрасльНазвание"
+        },
+        {
+          "dataField": "ПП_428",
+          "caption": "ПП_428"
+        },
+        {
+          "dataField": "дата_подписания",
+          "caption": "дата_подписания"
+        },
+        {
+          "dataField": "дата_расторжения",
+          "caption": "дата_расторжения"
+        },
+        {
+          "dataField": "Плательщик_наименование",
+          "caption": "Плательщик_наименование"
+        },
+        {
+          "dataField": "Плательщик_название",
+          "caption": "Плательщик_название"
+        },
+        {
+          "dataField": "Плательщик_юрадрес",
+          "caption": "Плательщик_юрадрес"
+        },
+        {
+          "dataField": "Плательщик_фактадрес",
+          "caption": "Плательщик_фактадрес"
+        },
+        {
+          "dataField": "ИНН",
+          "caption": "ИНН"
+        },
+        {
+          "dataField": "КПП",
+          "caption": "КПП"
+        },
+        {
+          "dataField": "ОГРН",
+          "caption": "ОГРН"
+        },
+        {
+          "dataField": "email",
+          "caption": "email"
+        },
+        {
+          "dataField": "Плательщик_ФИОрук",
+          "caption": "Плательщик_ФИОрук"
+        },
+        {
+          "dataField": "Плательщик_телрук",
+          "caption": "Плательщик_телрук"
+        },
+        {
+          "dataField": "Грузополучатель_наименование",
+          "caption": "Грузополучатель_наименование"
+        },
+        {
+          "dataField": "Грузополучатель_название",
+          "caption": "Грузополучатель_название"
+        },
+        {
+          "dataField": "Грузополучатель_юрадрес",
+          "caption": "Грузополучатель_юрадрес"
+        },
+        {
+          "dataField": "Грузополучатель_фактадрес",
+          "caption": "Грузополучатель_фактадрес"
+        },
+        {
+          "dataField": "ИНН",
+          "caption": "ИНН"
+        },
+        {
+          "dataField": "КПП",
+          "caption": "КПП"
+        },
+        {
+          "dataField": "ОГРН",
+          "caption": "ОГРН"
+        },
+        {
+          "dataField": "email",
+          "caption": "email"
+        },
+        {
+          "dataField": "Грузополучатель_ФИОрук",
+          "caption": "Грузополучатель_ФИОрук"
+        },
+        {
+          "dataField": "Грузополучатель_телрук",
+          "caption": "Грузополучатель_телрук"
+        },
+        {
+          "dataField": "Заказчик_наименование",
+          "caption": "Заказчик_наименование"
+        },
+        {
+          "dataField": "Заказчик_название",
+          "caption": "Заказчик_название"
+        },
+        {
+          "dataField": "Заказчик_юрадрес",
+          "caption": "Заказчик_юрадрес"
+        },
+        {
+          "dataField": "Заказчик_фактадрес",
+          "caption": "Заказчик_фактадрес"
+        },
+        {
+          "dataField": "ИНН",
+          "caption": "ИНН"
+        },
+        {
+          "dataField": "КПП",
+          "caption": "КПП"
+        },
+        {
+          "dataField": "ОГРН",
+          "caption": "ОГРН"
+        },
+        {
+          "dataField": "email",
+          "caption": "email"
+        },
+        {
+          "dataField": "Заказчик_ФИОрук",
+          "caption": "Заказчик_ФИОрук"
+        },
+        {
+          "dataField": "Заказчик_телрук",
+          "caption": "Заказчик_телрук"
+        },
+        {
+          "dataField": "адрес_доставки",
+          "caption": "адрес_доставки"
+        },
+        {
+          "dataField": "договорник",
+          "caption": "договорник"
+        },
+        {
+          "dataField": "расчетчик",
+          "caption": "расчетчик"
+        },
+        {
+          "dataField": "претензионист",
+          "caption": "претензионист"
+        }
+      ],
+      "dashboard": [
+        {
+          "dataField": "Отчет",
+          "caption": "Отчет",
+          "chartType": ""
+        },
+        {
+          "dataField": "Филиал",
+          "caption": "Филиал",
+          "chartType": ""
+        },
+        {
+          "dataField": "номер",
+          "caption": "номер",
+          "format.type": "fixedPoint",
+          "format.precision": 0,
+          "chartType": ""
+        },
+        {
+          "dataField": "отделение",
+          "caption": "отделение",
+          "chartType": ""
+        },
+        {
+          "dataField": "участок",
+          "caption": "участок",
+          "chartType": ""
+        },
+        {
+          "dataField": "бюджет",
+          "caption": "бюджет",
+          "chartType": ""
+        },
+        {
+          "dataField": "тип",
+          "caption": "тип",
+          "chartType": ""
+        },
+        {
+          "dataField": "КатегорияНазвание",
+          "caption": "КатегорияНазвание",
+          "chartType": ""
+        },
+        {
+          "dataField": "ОтрасльНазвание",
+          "caption": "ОтрасльНазвание",
+          "chartType": ""
+        },
+        {
+          "dataField": "ПП_428",
+          "caption": "ПП_428",
+          "chartType": ""
+        },
+        {
+          "dataField": "дата_подписания",
+          "caption": "дата_подписания",
+          "chartType": ""
+        },
+        {
+          "dataField": "дата_расторжения",
+          "caption": "дата_расторжения",
+          "chartType": ""
+        },
+        {
+          "dataField": "Плательщик_наименование",
+          "caption": "Плательщик_наименование",
+          "chartType": ""
+        },
+        {
+          "dataField": "Плательщик_название",
+          "caption": "Плательщик_название",
+          "chartType": ""
+        },
+        {
+          "dataField": "Плательщик_юрадрес",
+          "caption": "Плательщик_юрадрес",
+          "chartType": ""
+        },
+        {
+          "dataField": "Плательщик_фактадрес",
+          "caption": "Плательщик_фактадрес",
+          "chartType": ""
+        },
+        {
+          "dataField": "ИНН",
+          "caption": "ИНН",
+          "chartType": ""
+        },
+        {
+          "dataField": "КПП",
+          "caption": "КПП",
+          "chartType": ""
+        },
+        {
+          "dataField": "ОГРН",
+          "caption": "ОГРН",
+          "chartType": ""
+        },
+        {
+          "dataField": "email",
+          "caption": "email",
+          "chartType": ""
+        },
+        {
+          "dataField": "Плательщик_ФИОрук",
+          "caption": "Плательщик_ФИОрук",
+          "chartType": ""
+        },
+        {
+          "dataField": "Плательщик_телрук",
+          "caption": "Плательщик_телрук",
+          "chartType": ""
+        },
+        {
+          "dataField": "Грузополучатель_наименование",
+          "caption": "Грузополучатель_наименование",
+          "chartType": ""
+        },
+        {
+          "dataField": "Грузополучатель_название",
+          "caption": "Грузополучатель_название",
+          "chartType": ""
+        },
+        {
+          "dataField": "Грузополучатель_юрадрес",
+          "caption": "Грузополучатель_юрадрес",
+          "chartType": ""
+        },
+        {
+          "dataField": "Грузополучатель_фактадрес",
+          "caption": "Грузополучатель_фактадрес",
+          "chartType": ""
+        },
+        {
+          "dataField": "ИНН",
+          "caption": "ИНН",
+          "chartType": ""
+        },
+        {
+          "dataField": "КПП",
+          "caption": "КПП",
+          "chartType": ""
+        },
+        {
+          "dataField": "ОГРН",
+          "caption": "ОГРН",
+          "chartType": ""
+        },
+        {
+          "dataField": "email",
+          "caption": "email",
+          "chartType": ""
+        },
+        {
+          "dataField": "Грузополучатель_ФИОрук",
+          "caption": "Грузополучатель_ФИОрук",
+          "chartType": ""
+        },
+        {
+          "dataField": "Грузополучатель_телрук",
+          "caption": "Грузополучатель_телрук",
+          "chartType": ""
+        },
+        {
+          "dataField": "Заказчик_наименование",
+          "caption": "Заказчик_наименование",
+          "chartType": ""
+        },
+        {
+          "dataField": "Заказчик_название",
+          "caption": "Заказчик_название",
+          "chartType": ""
+        },
+        {
+          "dataField": "Заказчик_юрадрес",
+          "caption": "Заказчик_юрадрес",
+          "chartType": ""
+        },
+        {
+          "dataField": "Заказчик_фактадрес",
+          "caption": "Заказчик_фактадрес",
+          "chartType": ""
+        },
+        {
+          "dataField": "ИНН",
+          "caption": "ИНН",
+          "chartType": ""
+        },
+        {
+          "dataField": "КПП",
+          "caption": "КПП",
+          "chartType": ""
+        },
+        {
+          "dataField": "ОГРН",
+          "caption": "ОГРН",
+          "chartType": ""
+        },
+        {
+          "dataField": "email",
+          "caption": "email",
+          "chartType": ""
+        },
+        {
+          "dataField": "Заказчик_ФИОрук",
+          "caption": "Заказчик_ФИОрук",
+          "chartType": ""
+        },
+        {
+          "dataField": "Заказчик_телрук",
+          "caption": "Заказчик_телрук",
+          "chartType": ""
+        },
+        {
+          "dataField": "адрес_доставки",
+          "caption": "адрес_доставки",
+          "chartType": ""
+        },
+        {
+          "dataField": "договорник",
+          "caption": "договорник",
+          "chartType": ""
+        },
+        {
+          "dataField": "расчетчик",
+          "caption": "расчетчик",
+          "chartType": ""
+        },
+        {
+          "dataField": "претензионист",
+          "caption": "претензионист",
+          "chartType": ""
+        }
+      ],
+      "map": [
+        {
+          "dataField": "Отчет",
+          "caption": "Отчет"
+        },
+        {
+          "dataField": "Филиал",
+          "caption": "Филиал"
+        },
+        {
+          "dataField": "номер",
+          "caption": "номер",
+          "format.type": "fixedPoint",
+          "format.precision": 0
+        },
+        {
+          "dataField": "отделение",
+          "caption": "отделение"
+        },
+        {
+          "dataField": "участок",
+          "caption": "участок"
+        },
+        {
+          "dataField": "бюджет",
+          "caption": "бюджет"
+        },
+        {
+          "dataField": "тип",
+          "caption": "тип"
+        },
+        {
+          "dataField": "КатегорияНазвание",
+          "caption": "КатегорияНазвание"
+        },
+        {
+          "dataField": "ОтрасльНазвание",
+          "caption": "ОтрасльНазвание"
+        },
+        {
+          "dataField": "ПП_428",
+          "caption": "ПП_428"
+        },
+        {
+          "dataField": "дата_подписания",
+          "caption": "дата_подписания"
+        },
+        {
+          "dataField": "дата_расторжения",
+          "caption": "дата_расторжения"
+        },
+        {
+          "dataField": "Плательщик_наименование",
+          "caption": "Плательщик_наименование"
+        },
+        {
+          "dataField": "Плательщик_название",
+          "caption": "Плательщик_название"
+        },
+        {
+          "dataField": "Плательщик_юрадрес",
+          "caption": "Плательщик_юрадрес"
+        },
+        {
+          "dataField": "Плательщик_фактадрес",
+          "caption": "Плательщик_фактадрес"
+        },
+        {
+          "dataField": "ИНН",
+          "caption": "ИНН"
+        },
+        {
+          "dataField": "КПП",
+          "caption": "КПП"
+        },
+        {
+          "dataField": "ОГРН",
+          "caption": "ОГРН"
+        },
+        {
+          "dataField": "email",
+          "caption": "email"
+        },
+        {
+          "dataField": "Плательщик_ФИОрук",
+          "caption": "Плательщик_ФИОрук"
+        },
+        {
+          "dataField": "Плательщик_телрук",
+          "caption": "Плательщик_телрук"
+        },
+        {
+          "dataField": "Грузополучатель_наименование",
+          "caption": "Грузополучатель_наименование"
+        },
+        {
+          "dataField": "Грузополучатель_название",
+          "caption": "Грузополучатель_название"
+        },
+        {
+          "dataField": "Грузополучатель_юрадрес",
+          "caption": "Грузополучатель_юрадрес"
+        },
+        {
+          "dataField": "Грузополучатель_фактадрес",
+          "caption": "Грузополучатель_фактадрес"
+        },
+        {
+          "dataField": "ИНН",
+          "caption": "ИНН"
+        },
+        {
+          "dataField": "КПП",
+          "caption": "КПП"
+        },
+        {
+          "dataField": "ОГРН",
+          "caption": "ОГРН"
+        },
+        {
+          "dataField": "email",
+          "caption": "email"
+        },
+        {
+          "dataField": "Грузополучатель_ФИОрук",
+          "caption": "Грузополучатель_ФИОрук"
+        },
+        {
+          "dataField": "Грузополучатель_телрук",
+          "caption": "Грузополучатель_телрук"
+        },
+        {
+          "dataField": "Заказчик_наименование",
+          "caption": "Заказчик_наименование"
+        },
+        {
+          "dataField": "Заказчик_название",
+          "caption": "Заказчик_название"
+        },
+        {
+          "dataField": "Заказчик_юрадрес",
+          "caption": "Заказчик_юрадрес"
+        },
+        {
+          "dataField": "Заказчик_фактадрес",
+          "caption": "Заказчик_фактадрес"
+        },
+        {
+          "dataField": "ИНН",
+          "caption": "ИНН"
+        },
+        {
+          "dataField": "КПП",
+          "caption": "КПП"
+        },
+        {
+          "dataField": "ОГРН",
+          "caption": "ОГРН"
+        },
+        {
+          "dataField": "email",
+          "caption": "email"
+        },
+        {
+          "dataField": "Заказчик_ФИОрук",
+          "caption": "Заказчик_ФИОрук"
+        },
+        {
+          "dataField": "Заказчик_телрук",
+          "caption": "Заказчик_телрук"
+        },
+        {
+          "dataField": "адрес_доставки",
+          "caption": "адрес_доставки"
+        },
+        {
+          "dataField": "договорник",
+          "caption": "договорник"
+        },
+        {
+          "dataField": "расчетчик",
+          "caption": "расчетчик"
+        },
+        {
+          "dataField": "претензионист",
+          "caption": "претензионист"
+        }
+      ]
+    },
+    "query": "declare @dog int      = -10;\r\ndeclare @vid int      = (SELECT ROW_ID FROM stack.[Виды параметров] WHERE Название = 'ПП_428');\r\ndeclare @now datetime = GETDATE();\r\n\r\nwith info as (\r\n    select o.ROW_ID id,\r\n\tstack.strcat(ch.ФИО,     ',' + CHAR(10)) ФИОРук,\r\n\tstack.strcat(ch.Телефон, ',' + CHAR(10)) ТелРук    \r\n\tfrom stack.Организации o\r\n    inner join stack.[Частные лица] ch\r\n        on ch.[Организация-Частные лица] = o.ROW_ID\r\n       and ch.Признаки = 1\r\n    group by o.ROW_ID\r\n),\r\npp as (\r\n    select dog.ROW_ID,\r\n           max(case when k.ДополнительныйТип = 1\r\n                    then 'Пострадавшие отрасли от COVID-19' else '' end) Тип1,\r\n           max(case s.Значение\r\n                    when 1 then 'Системообразующие организации'\r\n                    when 2 then 'Стратегические предприятия и АО'\r\n                    when 3 then 'Стратегические организации и ФОИВ'\r\n                    else '' end) Тип2\r\n    from stack.Договор dog\r\n    left join stack.Классификаторы k\r\n        on dog.[Отрасль-Договоры] = k.ROW_ID and k.ДополнительныйТип = 1\r\n    left join stack.Свойства s\r\n        on s.[Параметры-Договор] = dog.ROW_ID\r\n       and s.[Виды-Параметры] = @vid\r\n       and @now between s.ДатНач and s.ДатКнц\r\n    group by dog.ROW_ID\r\n)\r\nselect\r\n    d.номер,\r\n    c.отделение,\r\n    c.участок,\r\n    case when d.[Бюджет-Договоры] <> -1 then 'Бюджет' else '' end бюджет,\r\n    case d.[Тип договора]\r\n    when 1 then 'Договор энергоснабжения' \r\n    when 2 then 'Договор купли-продажи' \r\n    when 3 then 'Договор население (квитанции)'\r\n    when 4 then 'Договор хозяйственные нужды'\r\n    when 5 then 'Компенсация потерь сетевых компаний'\r\n    when 6 then 'Договор оказания услуг по передаче электрической энергии'\r\n    when 7 then 'Договор купли-продажи в целях компенсации фактических потерь, возникающих в электрических сетях'\r\n    when 8 then 'Договор купли-продажи электрической энергии в целях компенсации потерь электрической энергии в электрических сетях'\r\n    when 9 then 'Договор для расчетов'  \r\n    when 10 then 'Договор водоснабжения' \r\n    when 11 then 'Договор теплоснабжения' \r\n    when 12 then 'Договор СОИ' \r\n    else '' end тип,\r\n    c.КатегорияНазвание,\r\n    c.ОтрасльНазвание,\r\n    case when t.Тип1 = '' then t.Тип2 else t.Тип1 end ПП_428,\r\n    d.[Дата подписания]       дата_подписания,\r\n    d.[Дата расторжения]      дата_расторжения,\r\n    p.Наименование            Плательщик_наименование,\r\n    p.Название                Плательщик_название,\r\n    p.Адрес                   Плательщик_юрадрес,\r\n    p.ФактАдрес               Плательщик_фактадрес,\r\n    p.ИНН, p.КПП, p.ОГРН, p.email,\r\n    info_p.ФИОРук             Плательщик_ФИОрук,\r\n    info_p.ТелРук             Плательщик_телрук,\r\n    g.Наименование            Грузополучатель_наименование,\r\n    g.Название                Грузополучатель_название,\r\n    g.Адрес                   Грузополучатель_юрадрес,\r\n    g.ФактАдрес               Грузополучатель_фактадрес,\r\n    g.ИНН, g.КПП, g.ОГРН, g.email,\r\n    info_g.ФИОРук             Грузополучатель_ФИОрук,\r\n    info_g.ТелРук             Грузополучатель_телрук,\r\n    z.Наименование            Заказчик_наименование,\r\n    z.Название                Заказчик_название,\r\n    z.Адрес                   Заказчик_юрадрес,\r\n    z.ФактАдрес               Заказчик_фактадрес,\r\n    z.ИНН, z.КПП, z.ОГРН, z.email,\r\n    info_z.ФИОРук             Заказчик_ФИОрук,\r\n    info_z.ТелРук             Заказчик_телрук,\r\n    d.[Адрес доставки]        адрес_доставки,\r\n    dog.фио                   договорник,\r\n    ras.ФИО                   расчетчик,\r\n    pret.ФИО                  претензионист\r\nfrom stack.Договор d\r\ninner join stack.contracts(@dog) c on d.ROW_ID = c.Договор\r\ninner join stack.Организации p on p.ROW_ID = d.Плательщик\r\ninner join stack.Организации g on g.ROW_ID = d.Грузополучатель\r\nleft  join stack.Организации z on z.ROW_ID = d.Заказчик\r\nleft  join stack.Сотрудники dog  on d.Сотрудник2 = dog.ROW_ID\r\nleft  join stack.Сотрудники ras  on ras.ROW_ID = d.Сотрудник1\r\nleft  join stack.Сотрудники pret on pret.ROW_ID = d.Сотрудник5\r\nleft  join info info_p on info_p.id = p.ROW_ID\r\nleft  join info info_g on info_g.id = g.ROW_ID\r\nleft  join info info_z on info_z.id = z.ROW_ID\r\nleft  join pp t on t.ROW_ID = d.ROW_ID\r\norder by c.отделение, d.номер;",
+    "db": "DB4FL",
+    "mandatory": [
+      "БД_ЮЛ"
+    ]
+  },
+  {
+    "id": 3001,
+    "parent": 3000,
+    "text": "Статистика отчетов по ЮЛ",
+    "icon": "chart",
+    "description": "",
+    "filters": {
+      "БД_ЮЛ": [],
+      "ПериодДни": []
+    },
+    "processing": "client",
+    "views": [
+      "grid"
+    ],
+    "fields": {
+      "grid": [
+        {
+          "dataField": "Отчет",
+          "caption": "Отчет"
+        },
+        {
+          "dataField": "Филиал",
+          "caption": "Филиал"
+        },
+        {
+          "dataField": "Название",
+          "caption": "Название"
+        },
+        {
+          "dataField": "КоличествоЗаписей",
+          "caption": "КоличествоЗаписей",
+          "formatType": "fixedPoint",
+          "formatPrecision": 0
+        }
+      ],
+      "pivot": [
+        {
+          "dataField": "Отчет",
+          "caption": "Отчет"
+        },
+        {
+          "dataField": "Филиал",
+          "caption": "Филиал"
+        },
+        {
+          "dataField": "Название",
+          "caption": "Название"
+        },
+        {
+          "dataField": "КоличествоЗаписей",
+          "caption": "КоличествоЗаписей",
+          "format.type": "fixedPoint",
+          "format.precision": 0
+        }
+      ],
+      "dashboard": [
+        {
+          "dataField": "Отчет",
+          "caption": "Отчет",
+          "chartType": ""
+        },
+        {
+          "dataField": "Филиал",
+          "caption": "Филиал",
+          "chartType": ""
+        },
+        {
+          "dataField": "Название",
+          "caption": "Название",
+          "chartType": ""
+        },
+        {
+          "dataField": "КоличествоЗаписей",
+          "caption": "КоличествоЗаписей",
+          "format.type": "fixedPoint",
+          "format.precision": 0,
+          "chartType": ""
+        }
+      ],
+      "map": [
+        {
+          "dataField": "Отчет",
+          "caption": "Отчет"
+        },
+        {
+          "dataField": "Филиал",
+          "caption": "Филиал"
+        },
+        {
+          "dataField": "Название",
+          "caption": "Название"
+        },
+        {
+          "dataField": "КоличествоЗаписей",
+          "caption": "КоличествоЗаписей",
+          "format.type": "fixedPoint",
+          "format.precision": 0
+        }
+      ]
+    },
+    "query": "select Название,\r\n  COUNT(*) as КоличествоЗаписей\r\nFROM [stack].[Лог построяния отчетов]\r\nwhere ДатаСтарта BETWEEN {ПериодДни_start} AND {ПериодДни_end}\r\ngroup by Название\r\norder by Название",
+    "db": "DB4FL",
+    "mandatory": [
+      "БД_ЮЛ"
+    ]
+  },
+  {
+    "id": 3002,
+    "parent": 3000,
+    "text": "Тест Отчет Статистика",
+    "icon": "chart",
+    "description": "",
+    "filters": {
+      "БД_ЮЛ": [],
+      "ПериодДни": []
+    },
+    "processing": "client",
+    "views": [
+      "pivot"
+    ],
+    "fields": {
+      "pivot": [
+        {
+          "dataField": "Отчет",
+          "caption": "Отчет",
+          "area": "column",
+          expanded:false
+        },
+        {
+          "dataField": "Филиал",
+          "caption": "Филиал",
+          "area": "row",
+          expanded:false
+        },
+        {
+          "dataField": "Название",
+          "caption": "Название",
+          "area": "row",
+          expanded:false
+        },
+        {
+          "dataField": "Пользователь",
+          "caption": "Пользователь",
+          "area": "filter",
+          expanded:false
+        },
+        {
+          "dataField": "Количество",
+          "caption": "Количество",
+          "format.type": "fixedPoint",
+          "summaryType": "sum",
+          "format.precision": 0
+        }
+      ]   
+ },
+    "query": "SELECT Название, Пользователь, COUNT(*) AS Количество\r\nFROM [stack].[Лог построяния отчетов]\r\nWHERE ДатаСтарта BETWEEN {ПериодДни_start} AND {ПериодДни_end}\r\nGROUP BY Название, Пользователь ORDER BY 3",
+    "db": "DB4FL",
+    "mandatory": [
+      "БД_ЮЛ",
+      "ПериодДни"
+    ]
+  }
+]

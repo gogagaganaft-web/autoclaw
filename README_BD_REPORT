@@ -1,0 +1,102 @@
+# Развёртывание БД `report` на проде
+
+## Что входит
+
+| Файл | Назначение |
+|---|---|
+| `db/prod/01_create_report_db.sql` | создание БД `report` и шести таблиц (идемпотентно) |
+| `db/prod/02_seed_reports.sql` | ОРН-ОСВ, ОРН-Платежи, раздел ОРН и панель фильтров (обновляет существующие записи) |
+| `tools/prod_deploy_report.ps1` | обёртка: применяет оба файла и печатает сводку |
+| `tools/export_reports_seed.py` | пересобрать `02_seed_reports.sql` из dev-БД, если отчёты правились |
+
+## Запуск (Windows-хост или Debian с sqlcmd)
+
+```powershell
+cd <repo>
+.\tools\prod_deploy_report.ps1 `
+    -Server "10.0.0.15,1433" `
+    -User "sa" `
+    -Password "<пароль>" `
+    -Database "report"
+```
+
+Полезные ключи:
+
+- `-WhatIf` — только показать, что будет применено, без изменений.
+- `-SeedOnly` — не создавать схему, только наполнить (когда БД уже есть).
+- `-VerifyOnly` — только проверить состояние.
+- `-DryRun` — прогнать `01`/`02` в режиме `SET NOEXEC ON` (синтаксис проверяется, изменений нет).
+
+## Что делает скрипт
+
+1. Проверяет доступность сервера и наличие `sqlcmd`.
+2. Применяет `01_create_report_db.sql`: `CREATE DATABASE report COLLATE Cyrillic_General_CI_AS`,
+   затем шесть таблиц с CHECK/FK/индексами. Повторный запуск ничего не ломает.
+3. Применяет `02_seed_reports.sql`: вставляет `SEC_ОРН`, `ОРН_5`, `ОРН_9` с сохранением `id`
+   (нужно для `parent_id` и ссылок состояния) и панель фильтров в `ui_config`.
+4. Печатает сводку: список отчётов, длину `query_text`, наличие панели фильтров.
+
+## Проверка после развёртывания
+
+```sql
+USE report;
+SELECT id, report_key, title, is_section, parent_id, DATALENGTH(query_text)/2 AS query_len
+FROM dbo.reports ORDER BY id;
+
+SELECT setting_key, LEN(config) AS cfg_len FROM dbo.ui_config;
+
+SELECT COUNT(*) AS tables_count FROM sys.tables;   -- ожидается 6
+```
+
+Ожидаемая сводка:
+
+| id | report_key | title | is_section | query_len |
+|---|---|---|---|---|
+| 5 | ОРН_5 | ОСВ | 0 | 6978 |
+| 9 | ОРН_9 | Платежи | 0 | 8167 |
+| 24 | SEC_ОРН | ОРН | 1 | 0 |
+
+`query_len` — `DATALENGTH(query_text)/2`, а не `LEN()`: `LEN` отбрасывает хвостовые пробелы,
+и в ОРН-ОСВ их восемь — получается ложное расхождение 6970 вместо 6978.
+
+## Подключение бэкенда к прод-БД
+
+В `.env` службы (или в systemd `EnvironmentFile`):
+
+```
+STORE_BACKEND=mssql
+REPORT_DB_SERVER=<сервер>
+REPORT_DB_PORT=1433
+REPORT_DB_USER=<учётка>
+REPORT_DB_PASSWORD=[redacted]
+REPORT_DB_DATABASE=report
+DEV_USER=<логин для отладки, на проде не нужен>
+```
+
+Если `REPORT_DB_*` не заданы, берутся `DB1UL_*` — удобно, когда `report` живёт на том же
+инстансе, что и `kand`.
+
+## Пользователи
+
+Таблица `app_user` на проде намеренно пустая: логины появятся из Bitrix24/Keycloak.
+Для проверки «до авторизации» можно завести техническую запись:
+
+```sql
+INSERT INTO dbo.app_user (login, display_name, role_code)
+VALUES (N'Windows.User', N'Технический пользователь', 'admin');
+```
+
+## Откат
+
+База создаётся отдельно от `kand`, поэтому откат — это удаление БД:
+
+```sql
+ALTER DATABASE report SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
+DROP DATABASE report;
+```
+
+Перед этим стоит снять резервную копию:
+
+```sql
+BACKUP DATABASE report TO DISK = N'/var/opt/mssql/backup/report_before_drop.bak' WITH INIT;
+```
